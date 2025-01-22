@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const SignIn: React.FC = () => {
+  const [formFields,setFormFields]=useState({
+    email:'',
+    password:''
+  })
+
+const handleSignIn=async()=>{
+ 
+  const response=await axios.post('http://localhost:8000/api/auth/register',
+    formFields
+  )
+
+  if(response?.data)
+    toast.success("Successfully Registered")
+  else
+  toast.error(response?.message)
+
+}
+
+
+
+
+
   return (
     <>
       
@@ -155,7 +178,7 @@ const SignIn: React.FC = () => {
                 Sign In to IMS
               </h2>
 
-              <form>
+              <form onSubmit={handleSignIn}>
                 <div className="mb-4">
                   <label className="mb-2.5 block font-medium text-black dark:text-white">
                     Email
@@ -165,6 +188,7 @@ const SignIn: React.FC = () => {
                       type="email"
                       placeholder="Enter your email"
                       className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      onChange={(e)=>setFormFields({...formFields,email:e.target.value})}
                     />
 
                     <span className="absolute right-4 top-4">
