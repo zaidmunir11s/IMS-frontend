@@ -10,6 +10,8 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Tables from './pages/Tables';
 import DefaultLayout from './layout/DefaultLayout';
+import Users from './pages/User/Users';
+import ProductCategories from './pages/ProductCategories/ProductCategory';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,7 +73,25 @@ function App() {
             </>
           }
         />
-       
+        <Route
+          path="/users"
+          element={
+            <>
+              <PageTitle title="Users | IMS - Tailwind CSS Admin Dashboard Template" />
+              <Users />
+            </>
+          }
+        />
+
+<Route
+          path="/productCategories"
+          element={
+            <>
+              <PageTitle title="Product Categories | IMS - Tailwind CSS Admin Dashboard Template" />
+              <ProductCategories />
+            </>
+          }
+        />
       
         <Route
           path="/auth/signin"

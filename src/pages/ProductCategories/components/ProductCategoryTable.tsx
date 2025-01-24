@@ -12,10 +12,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
 import axios from 'axios';
-import UserModal from './UserModal';
+import UserModal from './ProductCategoryModal';
 
 interface Column {
-  id: 'username' | 'email' | 'password' | 'role' | 'actions';
+  id: 'name';
   label: string;
   minWidth?: number;
   align?: 'right';
@@ -23,48 +23,37 @@ interface Column {
 }
 
 const columns: readonly Column[] = [
-  { id: 'username', label: 'Username', minWidth: 170 },
-  { id: 'email', label: 'Email', minWidth: 200 },
-  { id: 'password', label: 'Password', minWidth: 170 },
-  { id: 'role', label: 'Role', minWidth: 170 },
-  { id: 'actions', label: 'Actions', minWidth: 150 },
+  { id: 'name', label: 'Name', minWidth: 170 },
+ 
 ];
 
-interface UserData {
-  username: string;
-  email: string;
-  password: string;
-  role: string;
+interface ProductCategoryData {
+name:string
 }
 
 function createData(
-  username: string,
-  email: string,
-  password: string,
-  role: string,
-): UserData {
-  return { username, email, password, role };
+  name: string,
+ 
+): ProductCategoryData {
+  return { name };
 }
 
-const initialUsers = [
-  createData('johndoe', 'john@example.com', 'password123', 'admin'),
-  createData('janedoe', 'jane@example.com', 'password456', 'user'),
-  createData('alice', 'alice@example.com', 'password789', 'user'),
-  createData('bob', 'bob@example.com', 'password321', 'moderator'),
-  createData('charlie', 'charlie@example.com', 'password654', 'admin'),
+const initialProductCategories = [
+  createData('johndoe'),
+  createData('janedoe'),
+  createData('alice'),
+  createData('bob'),
+  createData('charlie'),
 ];
- function UserTable() {
+ function ProductCategoryTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [openModal, setOpenModal] = useState(false);
-  const [userData, setUserData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    role: '',
+  const [productCategoryData, setProductCategoryData] = useState({
+  name:''
   });
-  const [users, setUsers] = useState(initialUsers);
+  const [productCategories, setProductCategories] = useState(initialProductCategories);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -76,11 +65,11 @@ fetchUsers()
   },[])
 
   const fetchUsers=async ()=>{
-    const response=await axios.get("http://localhost:8000/api/user/")
+    const response=await axios.get("http://localhost:8000/api/product/categories")
     console.log(response)
     if(response?.data){
-      setUserData(response?.data)
-      setUsers(response?.data.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role)))
+      setProductCategoryData(response?.data)
+      setProductCategories(response?.data.map((productCategory:any)=>createData(productCategory?.name,)))
 
   }}
 
@@ -90,30 +79,24 @@ fetchUsers()
   };
 
   const handleOpenModal = () => {
-    setUserData({
-      username: '',
-      email: '',
-      password: '',
-      role: '',
+    setProductCategoryData({
+      name:''
     });
     setOpenModal(true);
   };
 
  
 
-  const handleEditUser = (user: UserData) => {
-    setUserData({
+  const handleEditUser = (productCategory: ProductCategoryData) => {
+    setProductCategoryData({
       
-      username: user.username,
-      email: user.email,
-      password: user.password,
-      role: user.role,
+     name:productCategory?.name
     });
     setOpenModal(true);
   };
 
-  const handleDeleteUser = (user: UserData) => {
-    setUsers(users.filter((u) => u.username !== user.username));
+  const handleDeleteUser = (productCategory: ProductCategoryData) => {
+    setProductCategories(productCategories.filter((p) => p.name !== productCategory.name));
   };
 
   return (
@@ -124,7 +107,7 @@ fetchUsers()
         sx={{ margin: 2 }}
         onClick={handleOpenModal}
       >
-        Add User
+        Add Product Category
       </Button>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -142,25 +125,25 @@ fetchUsers()
             </TableRow>
           </TableHead>
           <TableBody>
-            {users
+            {productCategories
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={user.username}>
+              .map((productCategory) => (
+                <TableRow hover role="checkbox" tabIndex={-1} key={productCategory.name}>
                   {columns.map((column) => {
-                    const value = user[column?.id];
+                    const value = productCategory[column?.id];
                     return (
                       <TableCell key={column.id} align={column.align}>
                         {column.id === 'actions' ? (
                           <>
                             <IconButton
                               color="primary"
-                              onClick={() => handleEditUser(user)}
+                              onClick={() => handleEditUser(productCategory)}
                             >
                               <EditIcon />
                             </IconButton>
                             <IconButton
                               color="secondary"
-                              onClick={() => handleDeleteUser(user)}
+                              onClick={() => handleDeleteUser(productCategory)}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -179,16 +162,16 @@ fetchUsers()
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={users.length}
+        count={productCategories.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
   
-     <UserModal openModal={openModal} setOpenModal={setOpenModal} users={users} setUserData={setUserData} userData={userData} setUsers={setUsers}/>
+     <UserModal openModal={openModal} setOpenModal={setOpenModal} productCategories={productCategories} setProductCategoryData={setProductCategoryData} productCategoryData={productCategoryData} setProductCategories={setProductCategories}/>
     </Paper>
   );
 }
 
-export default UserTable;
+export default ProductCategoryTable;
