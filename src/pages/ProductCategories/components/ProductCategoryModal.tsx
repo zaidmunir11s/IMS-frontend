@@ -1,10 +1,22 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle,  TextField } from "@mui/material";
 import axios from "axios";
+import { useCreateProductCategoryMutation } from "../../../services/productApi";
 
 
+type ProductCategoriesModalProps={
+  openModal:boolean,
+  productCategoryData:any,
+  setProductCategoryData:any,
+  productCategories:any,
+  setProductCategories:any,
+  setOpenModal:any
+
+}
 
 
-export default function UserModal({openModal,productCategoryData,setProductCategoryData,productCategories,setProductCategories,setOpenModal}){
+export default function ProductCategoriesModal({openModal,productCategoryData,setProductCategoryData,productCategories,setProductCategories,setOpenModal}:ProductCategoriesModalProps){
+
+  const [createProduct]=useCreateProductCategoryMutation()
   
     const handleCloseModal = () => {
         setOpenModal(false);
@@ -20,7 +32,8 @@ export default function UserModal({openModal,productCategoryData,setProductCateg
      
     
       const handleSaveUser = async() => {
-       const response= await axios.post("http://localhost:8000/api/product/category/create",productCategoryData)
+       const response= await createProduct({body:productCategoryData})
+        
        console.log(response)
        
         setProductCategories([
@@ -37,8 +50,8 @@ export default function UserModal({openModal,productCategoryData,setProductCateg
        
     
     return(
-        <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>{productCategoryData?.name ? 'Edit User' : 'Add User'}</DialogTitle>
+        <Dialog open={openModal} onClose={handleCloseModal} fullWidth>
+        <DialogTitle>{'Add Product Category'}</DialogTitle>
         <DialogContent>
           <TextField
             label="Name"

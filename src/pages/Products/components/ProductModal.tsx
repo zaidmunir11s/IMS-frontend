@@ -1,13 +1,12 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import axios from "axios";
-import { useState } from "react";
-import { useGetRolesQuery } from "../../../services/userApi";
+import { useEffect, useState } from "react";
 
 
 
 
 export default function UserModal({openModal,userData,setUserData,users,setUsers,setOpenModal}){
-    const {data:getRoles}=useGetRolesQuery({})
+    const [roles,setRoles]=useState([])
   
     const handleCloseModal = () => {
         setOpenModal(false);
@@ -20,6 +19,15 @@ export default function UserModal({openModal,userData,setUserData,users,setUsers
         });
       };
 
+      useEffect(()=>{
+      fetchRoles()
+      },[])
+
+
+      const fetchRoles=async ()=>{
+        const response= await axios.get("http://localhost:8000/api/user/roles")
+        setRoles(response?.data?.roles)
+      }
     
       const handleSaveUser = async() => {
        const response= await axios.post("http://localhost:8000/api/user",userData)
@@ -37,7 +45,7 @@ export default function UserModal({openModal,userData,setUserData,users,setUsers
         setOpenModal(false); 
       };
 
-console.log(userData)
+
      
         const handleChange = (event: SelectChangeEvent) => {
             setUserData({...userData,role:event.target.value as string});
@@ -79,7 +87,7 @@ console.log(userData)
             onChange={handleChange}
             fullWidth
         >
-   { getRoles?.roles.map((role:any)=><MenuItem value={role?._id} >{role?.name}</MenuItem>)}
+   { roles.map((role:any)=><MenuItem value={role?._id} >{role?.name}</MenuItem>)}
 </Select>
         </DialogContent>
         <DialogActions>

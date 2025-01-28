@@ -13,9 +13,10 @@ import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
 import axios from 'axios';
 import UserModal from './ProductCategoryModal';
+import { useGetProductCategoriesQuery } from '../../../services/productApi';
 
 interface Column {
-  id: 'name';
+  id: 'name' | 'actions';
   label: string;
   minWidth?: number;
   align?: 'right';
@@ -24,7 +25,7 @@ interface Column {
 
 const columns: readonly Column[] = [
   { id: 'name', label: 'Name', minWidth: 170 },
- 
+  { id: 'actions', label: 'Actions', minWidth: 150 },
 ];
 
 interface ProductCategoryData {
@@ -48,30 +49,21 @@ const initialProductCategories = [
  function ProductCategoryTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const {data:getProductCategories}=useGetProductCategoriesQuery({})
 
   const [openModal, setOpenModal] = useState(false);
   const [productCategoryData, setProductCategoryData] = useState({
   name:''
   });
-  const [productCategories, setProductCategories] = useState(initialProductCategories);
+  const [productCategories, setProductCategories] = useState(getProductCategories?.map((productCategory:any)=>createData(productCategory?.name)));
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-
-  useEffect(()=>{
-fetchUsers()
-  },[])
-
-  const fetchUsers=async ()=>{
-    const response=await axios.get("http://localhost:8000/api/product/categories")
-    console.log(response)
-    if(response?.data){
-      setProductCategoryData(response?.data)
-      setProductCategories(response?.data.map((productCategory:any)=>createData(productCategory?.name,)))
-
-  }}
+useEffect(()=>{
+ setProductCategories(getProductCategories?.map((productCategory:any)=>createData(productCategory?.name)))
+},[getProductCategories])
 
   const handleChangeRowsPerPage = (event:any) => {
     setRowsPerPage(+event.target.value);
@@ -126,7 +118,7 @@ fetchUsers()
           </TableHead>
           <TableBody>
             {productCategories
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((productCategory) => (
                 <TableRow hover role="checkbox" tabIndex={-1} key={productCategory.name}>
                   {columns.map((column) => {
@@ -162,7 +154,7 @@ fetchUsers()
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={productCategories.length}
+        count={productCategories?.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

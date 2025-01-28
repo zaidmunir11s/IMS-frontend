@@ -12,11 +12,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
 import axios from 'axios';
-import UserModal from './UserModal';
-import { useGetUsersQuery } from '../../../services/userApi';
+import UserModal from './ProductModal';
 
 interface Column {
-  id: 'username' | 'email' | 'password' | 'role' | 'actions';
+  id: 'name' | 'description' | 'price' | 'quantity' | 'category' | 'actions';
   label: string;
   minWidth?: number;
   align?: 'right';
@@ -24,27 +23,31 @@ interface Column {
 }
 
 const columns: readonly Column[] = [
-  { id: 'username', label: 'Username', minWidth: 170 },
-  { id: 'email', label: 'Email', minWidth: 200 },
-  { id: 'password', label: 'Password', minWidth: 170 },
-  { id: 'role', label: 'Role', minWidth: 170 },
+  { id: 'name', label: 'Name', minWidth: 170 },
+  { id: 'description', label: 'Description', minWidth: 200 },
+  { id: 'price', label: 'Price', minWidth: 170 },
+  { id: 'quantity', label: 'Quantity', minWidth: 170 },
+  { id: 'category', label: 'Category', minWidth: 170 },
   { id: 'actions', label: 'Actions', minWidth: 150 },
 ];
 
-interface UserData {
-  username: string;
-  email: string;
-  password: string;
-  role: string;
+interface ProductData {
+  name: string;
+  description: string;
+  price: string;
+  quantity: string;
+  category:string
 }
 
 function createData(
-  username: string,
-  email: string,
-  password: string,
-  role: string,
-): UserData {
-  return { username, email, password, role };
+  name: string,
+  description: string,
+  price: string,
+  quantity: string,
+  category:string
+
+): ProductData {
+  return { name, description, price, quantity,category };
 }
 
 const initialUsers = [
@@ -58,7 +61,6 @@ const initialUsers = [
  function UserTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const {data:getUsers}=useGetUsersQuery({})
 
   const [openModal, setOpenModal] = useState(false);
   const [userData, setUserData] = useState({
@@ -67,17 +69,26 @@ const initialUsers = [
     password: '',
     role: '',
   });
-  const [users, setUsers] = useState(getUsers?.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)));
+  const [users, setUsers] = useState(initialUsers);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
 
+  useEffect(()=>{
+fetchUsers()
+  },[])
 
-useEffect(()=>{
-      setUsers(getUsers?.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)))
-},[getUsers])
+  const fetchUsers=async ()=>{
+    const response=await axios.get("http://localhost:8000/api/user/")
+    console.log(response?.data)
+    if(response?.data){
+      setUserData(response?.data)
+      setUsers(response?.data.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)))
+
+  }
+}
 
   const handleChangeRowsPerPage = (event:any) => {
     setRowsPerPage(+event.target.value);
@@ -139,7 +150,7 @@ useEffect(()=>{
           <TableBody>
             {users
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user:any) => (
+              .map((user) => (
                 <TableRow hover role="checkbox" tabIndex={-1} key={user.username}>
                   {columns.map((column) => {
                     const value = user[column?.id];
@@ -174,7 +185,7 @@ useEffect(()=>{
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={users?.length}
+        count={users.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
