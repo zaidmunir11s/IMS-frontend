@@ -11,8 +11,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
-import axios from 'axios';
-import UserModal from './ProductModal';
+import { useGetProductsQuery } from '../../../services/productApi';
+import ProductModal from './ProductModal';
 
 interface Column {
   id: 'name' | 'description' | 'price' | 'quantity' | 'category' | 'actions';
@@ -50,26 +50,22 @@ function createData(
   return { name, description, price, quantity,category };
 }
 
-const initialUsers = [
-  createData('johndoe', 'john@example.com', 'password123', 'admin'),
-  createData('janedoe', 'jane@example.com', 'password456', 'user'),
-  createData('alice', 'alice@example.com', 'password789', 'user'),
-  createData('bob', 'bob@example.com', 'password321', 'moderator'),
-  createData('charlie', 'charlie@example.com', 'password654', 'admin'),
-];
 
- function UserTable() {
+
+ function ProductTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const {data:getProducts}=useGetProductsQuery({})
 
   const [openModal, setOpenModal] = useState(false);
-  const [userData, setUserData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    role: '',
+  const [productData, setProductData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    quantity: '',
+    category:''
   });
-  const [users, setUsers] = useState(initialUsers);
+  const [products, setProducts] = useState(getProducts?.map((product:any)=>createData(product?.name,product?.description,product?.price,product.quantity,product?.category?.name)));
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -77,18 +73,11 @@ const initialUsers = [
 
 
   useEffect(()=>{
-fetchUsers()
-  },[])
+    setProducts(getProducts?.map((product:any)=>createData(product?.name,product?.description,product?.price,product.quantity,product?.category?.name)))
+  },[getProducts])
 
-  const fetchUsers=async ()=>{
-    const response=await axios.get("http://localhost:8000/api/user/")
-    console.log(response?.data)
-    if(response?.data){
-      setUserData(response?.data)
-      setUsers(response?.data.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)))
 
-  }
-}
+
 
   const handleChangeRowsPerPage = (event:any) => {
     setRowsPerPage(+event.target.value);
@@ -96,31 +85,35 @@ fetchUsers()
   };
 
   const handleOpenModal = () => {
-    setUserData({
-      username: '',
-      email: '',
-      password: '',
-      role: '',
+    setProductData({
+      name: '',
+      description: '',
+      price: '',
+      quantity: '',
+      category:''
     });
     setOpenModal(true);
   };
 
  
 
-  const handleEditUser = (user: UserData) => {
-    setUserData({
+  const handleEditUser = (product: ProductData) => {
+    setProductData({
       
-      username: user.username,
-      email: user.email,
-      password: user.password,
-      role: user.role,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+      category:product.category
     });
     setOpenModal(true);
   };
 
-  const handleDeleteUser = (user: UserData) => {
-    setUsers(users.filter((u) => u.username !== user.username));
+  const handleDeleteUser = (user: ProductData) => {
+    setProducts(products?.filter((u:any) => u.name !== user.name));
   };
+
+  
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -130,7 +123,7 @@ fetchUsers()
         sx={{ margin: 2 }}
         onClick={handleOpenModal}
       >
-        Add User
+        Add Product
       </Button>
       <TableContainer sx={{ maxHeight: 440 }}>
         <Table stickyHeader aria-label="sticky table">
@@ -148,25 +141,25 @@ fetchUsers()
             </TableRow>
           </TableHead>
           <TableBody>
-            {users
+            {products
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={user.username}>
+              .map((product:any) => (
+                <TableRow hover role="checkbox" tabIndex={-1} key={product.username}>
                   {columns.map((column) => {
-                    const value = user[column?.id];
+                    const value = product[column?.id];
                     return (
                       <TableCell key={column.id} align={column.align}>
                         {column.id === 'actions' ? (
                           <>
                             <IconButton
                               color="primary"
-                              onClick={() => handleEditUser(user)}
+                              onClick={() => handleEditUser(product)}
                             >
                               <EditIcon />
                             </IconButton>
                             <IconButton
                               color="secondary"
-                              onClick={() => handleDeleteUser(user)}
+                              onClick={() => handleDeleteUser(product)}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -185,16 +178,16 @@ fetchUsers()
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={users.length}
+        count={products?.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
   
-     <UserModal openModal={openModal} setOpenModal={setOpenModal} users={users} setUserData={setUserData} userData={userData} setUsers={setUsers}/>
+     <ProductModal openModal={openModal} setOpenModal={setOpenModal} products={products} setProductData={setProductData} productData={productData} setProducts={setProducts}/>
     </Paper>
   );
 }
 
-export default UserTable;
+export default ProductTable;

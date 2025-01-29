@@ -10,13 +10,31 @@ export const userApi=api.injectEndpoints({
             providesTags:["User"]
         }),
         createUser:builder.mutation({
-            query:(body)=>({
+            query:(body: any)=>({
                 url:"/user",
                 method:"Post",
                 body
             }),
             invalidatesTags:["User"]
         }),
+        updateUser:builder.mutation({
+            query:(body)=>(
+             {
+                url:"/user/update",
+                method:"Post",
+                body
+            }),
+            invalidatesTags:["User"]
+        }),
+        deleteUser: builder.mutation({
+            query: (userId: string) => ({
+              url: `/user/${userId}`,  
+              method: "DELETE",
+            }),
+         
+            invalidatesTags: ["User"],
+          }),
+     
         getRoles:builder.query({
             query:()=>({
                 url:"/user/roles",
@@ -30,5 +48,7 @@ export const userApi=api.injectEndpoints({
 export const {
     useGetUsersQuery,
     useCreateUserMutation,
-    useGetRolesQuery
+    useGetRolesQuery,
+    useUpdateUserMutation,
+    useDeleteUserMutation,
 }= userApi;

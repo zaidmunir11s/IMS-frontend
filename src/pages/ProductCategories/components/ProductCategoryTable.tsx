@@ -11,9 +11,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
-import axios from 'axios';
-import UserModal from './ProductCategoryModal';
-import { useGetProductCategoriesQuery } from '../../../services/productApi';
+import { useDeleteProductCategoryMutation, useGetProductCategoriesQuery } from '../../../services/productApi';
+import ProductCategoriesModal from './ProductCategoryModal';
 
 interface Column {
   id: 'name' | 'actions';
@@ -29,40 +28,38 @@ const columns: readonly Column[] = [
 ];
 
 interface ProductCategoryData {
+  id:string,
 name:string
 }
 
 function createData(
+  id:string,
   name: string,
  
 ): ProductCategoryData {
-  return { name };
+  return { id,name };
 }
 
-const initialProductCategories = [
-  createData('johndoe'),
-  createData('janedoe'),
-  createData('alice'),
-  createData('bob'),
-  createData('charlie'),
-];
+
  function ProductCategoryTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const {data:getProductCategories}=useGetProductCategoriesQuery({})
+  const [deleteProductCtegory]=useDeleteProductCategoryMutation()
 
   const [openModal, setOpenModal] = useState(false);
   const [productCategoryData, setProductCategoryData] = useState({
+    id:'',
   name:''
   });
-  const [productCategories, setProductCategories] = useState(getProductCategories?.map((productCategory:any)=>createData(productCategory?.name)));
+  const [productCategories, setProductCategories] = useState(getProductCategories?.map((productCategory:any)=>createData(productCategory?._id,productCategory?.name)));
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
 useEffect(()=>{
- setProductCategories(getProductCategories?.map((productCategory:any)=>createData(productCategory?.name)))
+ setProductCategories(getProductCategories?.map((productCategory:any)=>createData(productCategory?._id,productCategory?.name)))
 },[getProductCategories])
 
   const handleChangeRowsPerPage = (event:any) => {
@@ -72,6 +69,7 @@ useEffect(()=>{
 
   const handleOpenModal = () => {
     setProductCategoryData({
+      id:'',
       name:''
     });
     setOpenModal(true);
@@ -81,14 +79,14 @@ useEffect(()=>{
 
   const handleEditUser = (productCategory: ProductCategoryData) => {
     setProductCategoryData({
-      
+      id:productCategory?.id,
      name:productCategory?.name
     });
     setOpenModal(true);
   };
 
-  const handleDeleteUser = (productCategory: ProductCategoryData) => {
-    setProductCategories(productCategories.filter((p) => p.name !== productCategory.name));
+  const handleDeleteUser = async(productCategory: ProductCategoryData) => {
+    await deleteProductCtegory(productCategory?.id)
   };
 
   return (
@@ -119,7 +117,7 @@ useEffect(()=>{
           <TableBody>
             {productCategories
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((productCategory) => (
+              .map((productCategory:any) => (
                 <TableRow hover role="checkbox" tabIndex={-1} key={productCategory.name}>
                   {columns.map((column) => {
                     const value = productCategory[column?.id];
@@ -161,7 +159,7 @@ useEffect(()=>{
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
   
-     <UserModal openModal={openModal} setOpenModal={setOpenModal} productCategories={productCategories} setProductCategoryData={setProductCategoryData} productCategoryData={productCategoryData} setProductCategories={setProductCategories}/>
+    <ProductCategoriesModal openModal={openModal} setOpenModal={setOpenModal} productCategories={productCategories} setProductCategoryData={setProductCategoryData} productCategoryData={productCategoryData} setProductCategories={setProductCategories}/>
     </Paper>
   );
 }

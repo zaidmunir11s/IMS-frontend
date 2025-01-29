@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle,  TextField } from "@mui/material";
 import axios from "axios";
-import { useCreateProductCategoryMutation } from "../../../services/productApi";
+import { useCreateProductCategoryMutation, useUpdateProductCategoryMutation } from "../../../services/productApi";
 
 
 type ProductCategoriesModalProps={
@@ -17,6 +17,7 @@ type ProductCategoriesModalProps={
 export default function ProductCategoriesModal({openModal,productCategoryData,setProductCategoryData,productCategories,setProductCategories,setOpenModal}:ProductCategoriesModalProps){
 
   const [createProduct]=useCreateProductCategoryMutation()
+  const [updateProduct]=useUpdateProductCategoryMutation()
   
     const handleCloseModal = () => {
         setOpenModal(false);
@@ -32,17 +33,14 @@ export default function ProductCategoriesModal({openModal,productCategoryData,se
      
     
       const handleSaveUser = async() => {
-       const response= await createProduct({body:productCategoryData})
+        if(!productCategoryData?.id)
+     await createProduct(productCategoryData)
+    else
+    await updateProduct(productCategoryData)
         
-       console.log(response)
+      
        
-        setProductCategories([
-          ...productCategories,
-          {
-            
-            name: productCategoryData?.name,
-          },
-        ]);
+        
         setOpenModal(false); 
       };
 

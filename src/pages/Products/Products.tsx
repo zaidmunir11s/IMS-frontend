@@ -1,18 +1,18 @@
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
-import UserTable from './components/ProductTable';
+import ProductTable from './components/ProductTable';
 
 
-const Users = () => {
+const Products = () => {
   return (
     <>
-      <Breadcrumb pageName="Users" />
+      <Breadcrumb pageName="Products" />
 
       <div className="flex flex-col gap-10">
     
-        <UserTable />
+        <ProductTable />
       </div>
     </>
   );
 };
 
-export default Users;
+export default Products;

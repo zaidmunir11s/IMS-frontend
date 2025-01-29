@@ -1,13 +1,13 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
-import axios from "axios";
-import { useState } from "react";
-import { useGetRolesQuery } from "../../../services/userApi";
+import { useCreateUserMutation, useGetRolesQuery, useUpdateUserMutation } from "../../../services/userApi";
 
 
 
 
 export default function UserModal({openModal,userData,setUserData,users,setUsers,setOpenModal}){
     const {data:getRoles}=useGetRolesQuery({})
+    const [createUser]=useCreateUserMutation()
+    const [updateUser]=useUpdateUserMutation()
   
     const handleCloseModal = () => {
         setOpenModal(false);
@@ -22,22 +22,16 @@ export default function UserModal({openModal,userData,setUserData,users,setUsers
 
     
       const handleSaveUser = async() => {
-       const response= await axios.post("http://localhost:8000/api/user",userData)
-       console.log(response)
+     if(   !userData?.id)
+       await createUser( userData)
+      else{
+      
+      await updateUser(userData)}
        
-        setUsers([
-          ...users,
-          {
-            username: userData.username,
-            email: userData.email,
-            password: userData.password,
-            role: userData.role,
-          },
-        ]);
+       
         setOpenModal(false); 
       };
 
-console.log(userData)
      
         const handleChange = (event: SelectChangeEvent) => {
             setUserData({...userData,role:event.target.value as string});
@@ -45,7 +39,7 @@ console.log(userData)
     
     return(
         <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>{userData?.username ? 'Edit User' : 'Add User'}</DialogTitle>
+        <DialogTitle>{userData?.id ? 'Edit User' : 'Add User'}</DialogTitle>
         <DialogContent>
           <TextField
             label="Username"

@@ -11,9 +11,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import { useState ,useEffect} from 'react';
-import axios from 'axios';
 import UserModal from './UserModal';
-import { useGetUsersQuery } from '../../../services/userApi';
+import { useDeleteUserMutation, useGetUsersQuery } from '../../../services/userApi';
 
 interface Column {
   id: 'username' | 'email' | 'password' | 'role' | 'actions';
@@ -32,6 +31,7 @@ const columns: readonly Column[] = [
 ];
 
 interface UserData {
+  id:string;
   username: string;
   email: string;
   password: string;
@@ -39,44 +39,39 @@ interface UserData {
 }
 
 function createData(
+  id:string,
   username: string,
   email: string,
   password: string,
   role: string,
 ): UserData {
-  return { username, email, password, role };
+  return { id,username, email, password, role };
 }
 
-const initialUsers = [
-  createData('johndoe', 'john@example.com', 'password123', 'admin'),
-  createData('janedoe', 'jane@example.com', 'password456', 'user'),
-  createData('alice', 'alice@example.com', 'password789', 'user'),
-  createData('bob', 'bob@example.com', 'password321', 'moderator'),
-  createData('charlie', 'charlie@example.com', 'password654', 'admin'),
-];
+
 
  function UserTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const {data:getUsers}=useGetUsersQuery({})
+  const [deleteUser]=useDeleteUserMutation()
 
   const [openModal, setOpenModal] = useState(false);
   const [userData, setUserData] = useState({
+    id:'',
     username: '',
     email: '',
     password: '',
     role: '',
   });
-  const [users, setUsers] = useState(getUsers?.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)));
+  const [users, setUsers] = useState(getUsers?.map((user:any)=>createData(user?._id,user?.username,user?.email,user?.password,user.role?.name)));
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-
-
 useEffect(()=>{
-      setUsers(getUsers?.map((user:any)=>createData(user?.username,user?.email,user?.password,user.role?.name)))
+      setUsers(getUsers?.map((user:any)=>createData(user?._id,user?.username,user?.email,user?.password,user.role?.name)))
 },[getUsers])
 
   const handleChangeRowsPerPage = (event:any) => {
@@ -86,10 +81,12 @@ useEffect(()=>{
 
   const handleOpenModal = () => {
     setUserData({
+      id:'',
       username: '',
       email: '',
       password: '',
       role: '',
+    
     });
     setOpenModal(true);
   };
@@ -98,7 +95,7 @@ useEffect(()=>{
 
   const handleEditUser = (user: UserData) => {
     setUserData({
-      
+      id: user?.id,
       username: user.username,
       email: user.email,
       password: user.password,
@@ -107,9 +104,9 @@ useEffect(()=>{
     setOpenModal(true);
   };
 
-  const handleDeleteUser = (user: UserData) => {
-    setUsers(users.filter((u) => u.username !== user.username));
-  };
+  const handleDeleteUser = async(user: UserData) => {
+  await deleteUser(user?.id)
+  }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
