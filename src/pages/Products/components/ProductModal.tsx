@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
-import axios from "axios";
-import { useCreateProductMutation, useGetProductCategoriesQuery } from "../../../services/productApi";
+import { useCreateProductMutation, useGetProductCategoriesQuery,  useUpdateProductMutation } from "../../../services/productApi";
+import toast from "react-hot-toast";
 
 type ProductModalProps={
   openModal:boolean,
@@ -17,6 +17,7 @@ export default function ProductModal({openModal,productData,setProductData,produ
 
   const {data:getProductCategories}=useGetProductCategoriesQuery({})
   const [createProduct]=useCreateProductMutation()
+  const [updateProduct]=useUpdateProductMutation()
    
   
     const handleCloseModal = () => {
@@ -30,22 +31,27 @@ export default function ProductModal({openModal,productData,setProductData,produ
         });
       };
 
-      // useEffect(()=>{
-      // fetchRoles()
-      // },[])
-
-
-      // const fetchRoles=async ()=>{
-      //   const response= await axios.get("http://localhost:8000/api/user/roles")
-      //   setRoles(response?.data?.roles)
-      // }
+    
     
       const handleSaveUser = async() => {
-        const response= await createProduct(productData)
-     
-       
-       
-        
+        if(productData?.id){
+      const response:any =    await updateProduct(productData)
+   
+      if(response?.data?.data)
+        toast.success(response?.data?.message)
+      else
+      toast.error(response?.data?.message)
+        }
+        else
+     { 
+      
+   const response:any=   await createProduct(productData)
+   if(response?.data?.data)
+    toast.success(response?.data?.message)
+  else
+  toast.error(response?.data?.message)
+    }
+  
         setOpenModal(false); 
       };
 
@@ -57,7 +63,7 @@ export default function ProductModal({openModal,productData,setProductData,produ
     
     return(
         <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle> Add Product</DialogTitle>
+        <DialogTitle> {productData?.id?"Edit Product":"Add Product"}</DialogTitle>
         <DialogContent>
           <TextField
             label="Name"

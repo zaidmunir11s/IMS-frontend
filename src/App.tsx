@@ -13,6 +13,7 @@ import DefaultLayout from './layout/DefaultLayout';
 import Users from './pages/User/Users';
 import ProductCategories from './pages/ProductCategories/ProductCategory';
 import Products from './pages/Products/Products';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,6 +31,7 @@ function App() {
     <Loader />
   ) : (
     <>
+    <Toaster/>
     <Routes>
       
     </Routes>

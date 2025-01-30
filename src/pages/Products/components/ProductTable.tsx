@@ -10,9 +10,13 @@ import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
-import { useState ,useEffect} from 'react';
-import { useGetProductsQuery } from '../../../services/productApi';
+import { useState, useEffect } from 'react';
+import {
+  useDeleteProductMutation,
+  useGetProductsQuery,
+} from '../../../services/productApi';
 import ProductModal from './ProductModal';
+import toast from 'react-hot-toast';
 
 interface Column {
   id: 'name' | 'description' | 'price' | 'quantity' | 'category' | 'actions';
@@ -32,88 +36,106 @@ const columns: readonly Column[] = [
 ];
 
 interface ProductData {
+  id: string;
   name: string;
   description: string;
   price: string;
   quantity: string;
-  category:string
+  category: string;
 }
 
 function createData(
+  id: string,
   name: string,
   description: string,
   price: string,
   quantity: string,
-  category:string
-
+  category: string,
 ): ProductData {
-  return { name, description, price, quantity,category };
+  return { id, name, description, price, quantity, category };
 }
 
-
-
- function ProductTable() {
+function ProductTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const {data:getProducts}=useGetProductsQuery({})
+  const { data: getProducts } = useGetProductsQuery({});
+  const [deleteProduct] = useDeleteProductMutation();
 
   const [openModal, setOpenModal] = useState(false);
   const [productData, setProductData] = useState({
+    id: '',
     name: '',
     description: '',
     price: '',
     quantity: '',
-    category:''
+    category: '',
   });
-  const [products, setProducts] = useState(getProducts?.map((product:any)=>createData(product?.name,product?.description,product?.price,product.quantity,product?.category?.name)));
+  const [products, setProducts] = useState(
+    getProducts?.map((product: any) =>
+      createData(
+        product?._id,
+        product?.name,
+        product?.description,
+        product?.price,
+        product.quantity,
+        product?.category?.name,
+      ),
+    ),
+  );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
+  useEffect(() => {
+    setProducts(
+      getProducts?.map((product: any) =>
+        createData(
+          product?._id,
+          product?.name,
+          product?.description,
+          product?.price,
+          product.quantity,
+          product?.category?.name,
+        ),
+      ),
+    );
+  }, [getProducts]);
 
-  useEffect(()=>{
-    setProducts(getProducts?.map((product:any)=>createData(product?.name,product?.description,product?.price,product.quantity,product?.category?.name)))
-  },[getProducts])
-
-
-
-
-  const handleChangeRowsPerPage = (event:any) => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
   const handleOpenModal = () => {
     setProductData({
+      id: '',
       name: '',
       description: '',
       price: '',
       quantity: '',
-      category:''
+      category: '',
     });
     setOpenModal(true);
   };
 
- 
-
   const handleEditUser = (product: ProductData) => {
     setProductData({
-      
+      id: product?.id,
       name: product.name,
       description: product.description,
       price: product.price,
       quantity: product.quantity,
-      category:product.category
+      category: product.category,
     });
     setOpenModal(true);
   };
 
-  const handleDeleteUser = (user: ProductData) => {
-    setProducts(products?.filter((u:any) => u.name !== user.name));
+  const handleDeleteUser = async (product: ProductData) => {
+    const response = await deleteProduct(product?.id);
+    if (response?.data?.success) toast.success(response?.data?.message);
+    else toast.error(response?.data?.message);
   };
-
-  
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -143,8 +165,13 @@ function createData(
           <TableBody>
             {products
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((product:any) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={product.username}>
+              .map((product: any) => (
+                <TableRow
+                  hover
+                  role="checkbox"
+                  tabIndex={-1}
+                  key={product.username}
+                >
                   {columns.map((column) => {
                     const value = product[column?.id];
                     return (
@@ -184,8 +211,15 @@ function createData(
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-  
-     <ProductModal openModal={openModal} setOpenModal={setOpenModal} products={products} setProductData={setProductData} productData={productData} setProducts={setProducts}/>
+
+      <ProductModal
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        products={products}
+        setProductData={setProductData}
+        productData={productData}
+        setProducts={setProducts}
+      />
     </Paper>
   );
 }

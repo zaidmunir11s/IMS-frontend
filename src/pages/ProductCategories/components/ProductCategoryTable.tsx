@@ -10,9 +10,13 @@ import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
-import { useState ,useEffect} from 'react';
-import { useDeleteProductCategoryMutation, useGetProductCategoriesQuery } from '../../../services/productApi';
+import { useState, useEffect } from 'react';
+import {
+  useDeleteProductCategoryMutation,
+  useGetProductCategoriesQuery,
+} from '../../../services/productApi';
 import ProductCategoriesModal from './ProductCategoryModal';
+import toast from 'react-hot-toast';
 
 interface Column {
   id: 'name' | 'actions';
@@ -28,65 +32,70 @@ const columns: readonly Column[] = [
 ];
 
 interface ProductCategoryData {
-  id:string,
-name:string
+  id: string;
+  name: string;
 }
 
-function createData(
-  id:string,
-  name: string,
- 
-): ProductCategoryData {
-  return { id,name };
+function createData(id: string, name: string): ProductCategoryData {
+  return { id, name };
 }
 
-
- function ProductCategoryTable() {
+function ProductCategoryTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const {data:getProductCategories}=useGetProductCategoriesQuery({})
-  const [deleteProductCtegory]=useDeleteProductCategoryMutation()
+  const { data: getProductCategories } = useGetProductCategoriesQuery({});
+  const [deleteProductCtegory] = useDeleteProductCategoryMutation();
 
   const [openModal, setOpenModal] = useState(false);
   const [productCategoryData, setProductCategoryData] = useState({
-    id:'',
-  name:''
+    id: '',
+    name: '',
   });
-  const [productCategories, setProductCategories] = useState(getProductCategories?.map((productCategory:any)=>createData(productCategory?._id,productCategory?.name)));
+  const [productCategories, setProductCategories] = useState(
+    getProductCategories?.map((productCategory: any) =>
+      createData(productCategory?._id, productCategory?.name),
+    ),
+  );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-useEffect(()=>{
- setProductCategories(getProductCategories?.map((productCategory:any)=>createData(productCategory?._id,productCategory?.name)))
-},[getProductCategories])
+  useEffect(() => {
+    setProductCategories(
+      getProductCategories?.map((productCategory: any) =>
+        createData(productCategory?._id, productCategory?.name),
+      ),
+    );
+  }, [getProductCategories]);
 
-  const handleChangeRowsPerPage = (event:any) => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
   const handleOpenModal = () => {
     setProductCategoryData({
-      id:'',
-      name:''
+      id: '',
+      name: '',
     });
     setOpenModal(true);
   };
-
- 
 
   const handleEditUser = (productCategory: ProductCategoryData) => {
     setProductCategoryData({
-      id:productCategory?.id,
-     name:productCategory?.name
+      id: productCategory?.id,
+      name: productCategory?.name,
     });
     setOpenModal(true);
   };
 
-  const handleDeleteUser = async(productCategory: ProductCategoryData) => {
-    await deleteProductCtegory(productCategory?.id)
+  const handleDeleteUser = async (productCategory: ProductCategoryData) => {
+    {
+      const response: any = await deleteProductCtegory(productCategory?.id);
+      if (response?.data?.success) toast.success(response?.data?.message);
+      else toast.error(response?.data?.message);
+    }
   };
 
   return (
@@ -117,8 +126,13 @@ useEffect(()=>{
           <TableBody>
             {productCategories
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((productCategory:any) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={productCategory.name}>
+              .map((productCategory: any) => (
+                <TableRow
+                  hover
+                  role="checkbox"
+                  tabIndex={-1}
+                  key={productCategory.name}
+                >
                   {columns.map((column) => {
                     const value = productCategory[column?.id];
                     return (
@@ -158,8 +172,15 @@ useEffect(()=>{
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-  
-    <ProductCategoriesModal openModal={openModal} setOpenModal={setOpenModal} productCategories={productCategories} setProductCategoryData={setProductCategoryData} productCategoryData={productCategoryData} setProductCategories={setProductCategories}/>
+
+      <ProductCategoriesModal
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        productCategories={productCategories}
+        setProductCategoryData={setProductCategoryData}
+        productCategoryData={productCategoryData}
+        setProductCategories={setProductCategories}
+      />
     </Paper>
   );
 }

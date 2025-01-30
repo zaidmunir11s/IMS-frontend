@@ -10,9 +10,13 @@ import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
-import { useState ,useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import UserModal from './UserModal';
-import { useDeleteUserMutation, useGetUsersQuery } from '../../../services/userApi';
+import {
+  useDeleteUserMutation,
+  useGetUsersQuery,
+} from '../../../services/userApi';
+import toast from 'react-hot-toast';
 
 interface Column {
   id: 'username' | 'email' | 'password' | 'role' | 'actions';
@@ -31,7 +35,7 @@ const columns: readonly Column[] = [
 ];
 
 interface UserData {
-  id:string;
+  id: string;
   username: string;
   email: string;
   password: string;
@@ -39,59 +43,74 @@ interface UserData {
 }
 
 function createData(
-  id:string,
+  id: string,
   username: string,
   email: string,
   password: string,
   role: string,
 ): UserData {
-  return { id,username, email, password, role };
+  return { id, username, email, password, role };
 }
 
-
-
- function UserTable() {
+function UserTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const {data:getUsers}=useGetUsersQuery({})
-  const [deleteUser]=useDeleteUserMutation()
+  const { data: getUsers } = useGetUsersQuery({});
+  const [deleteUser] = useDeleteUserMutation();
 
   const [openModal, setOpenModal] = useState(false);
   const [userData, setUserData] = useState({
-    id:'',
+    id: '',
     username: '',
     email: '',
     password: '',
     role: '',
   });
-  const [users, setUsers] = useState(getUsers?.map((user:any)=>createData(user?._id,user?.username,user?.email,user?.password,user.role?.name)));
+  const [users, setUsers] = useState(
+    getUsers?.map((user: any) =>
+      createData(
+        user?._id,
+        user?.username,
+        user?.email,
+        user?.password,
+        user.role?.name,
+      ),
+    ),
+  );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-useEffect(()=>{
-      setUsers(getUsers?.map((user:any)=>createData(user?._id,user?.username,user?.email,user?.password,user.role?.name)))
-},[getUsers])
+  useEffect(() => {
+    setUsers(
+      getUsers?.map((user: any) =>
+        createData(
+          user?._id,
+          user?.username,
+          user?.email,
+          user?.password,
+          user.role?.name,
+        ),
+      ),
+    );
+  }, [getUsers]);
 
-  const handleChangeRowsPerPage = (event:any) => {
+  const handleChangeRowsPerPage = (event: any) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
   const handleOpenModal = () => {
     setUserData({
-      id:'',
+      id: '',
       username: '',
       email: '',
       password: '',
       role: '',
-    
     });
     setOpenModal(true);
   };
-
- 
 
   const handleEditUser = (user: UserData) => {
     setUserData({
@@ -104,9 +123,11 @@ useEffect(()=>{
     setOpenModal(true);
   };
 
-  const handleDeleteUser = async(user: UserData) => {
-  await deleteUser(user?.id)
-  }
+  const handleDeleteUser = async (user: UserData) => {
+    const response: any = await deleteUser(user?.id);
+    if (response?.data?.success) toast.success(response?.data?.message);
+    else toast.error(response?.data?.message);
+  };
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -136,8 +157,13 @@ useEffect(()=>{
           <TableBody>
             {users
               ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((user:any) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={user.username}>
+              .map((user: any) => (
+                <TableRow
+                  hover
+                  role="checkbox"
+                  tabIndex={-1}
+                  key={user.username}
+                >
                   {columns.map((column) => {
                     const value = user[column?.id];
                     return (
@@ -177,8 +203,15 @@ useEffect(()=>{
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-  
-     <UserModal openModal={openModal} setOpenModal={setOpenModal} users={users} setUserData={setUserData} userData={userData} setUsers={setUsers}/>
+
+      <UserModal
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        users={users}
+        setUserData={setUserData}
+        userData={userData}
+        setUsers={setUsers}
+      />
     </Paper>
   );
 }
